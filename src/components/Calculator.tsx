@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { themes } from '@/styles/themes';
 import styles from './Calculator.module.css';
 
@@ -17,8 +17,8 @@ const Calculator = () => {
         '0', '.', '⌫', '=',
     ];
 
-    // 키보드 입력을 처리하는 함수
-    const handleKeyPress = (event: KeyboardEvent) => {
+    // 키보드 입력을 처리하는 함수를 useCallback으로 메모이제이션
+    const handleKeyPress = useCallback((event: KeyboardEvent) => {
         const key = event.key;
         
         // Enter 키 처리
@@ -34,16 +34,16 @@ const Calculator = () => {
             handleButtonClick(key);
         }
         // Backspace 키 처리
-        else if (key === 'Backspace') {
-            event.preventDefault();
-            handleButtonClick('⌫');
-        }
-        // Escape 키로 Clear 처리
         else if (key === 'Escape') {
             event.preventDefault();
             handleButtonClick('C');
         }
-    };
+        // Escape 키로 Clear 처리
+        else if (key === 'Backspace') {
+            event.preventDefault();
+            handleButtonClick('⌫');
+        }
+    }, [input]); // input이 변경될 때만 함수를 재생성
 
     // 컴포넌트가 마운트될 때 키보드 이벤트 리스너 등록
     useEffect(() => {
@@ -53,7 +53,7 @@ const Calculator = () => {
         return () => {
             window.removeEventListener('keydown', handleKeyPress);
         };
-    }, [input]); // input이 변경될 때마다 이벤트 리스너 갱신
+    }, [handleKeyPress]); // handleKeyPress가 변경될 때만 effect를 재실행
 
     const handleButtonClick = (value: string) => {
         switch (value) {
@@ -67,7 +67,7 @@ const Calculator = () => {
                     setResult(evalResult.toString());
                     // 결과값에 따라 테마 변경
                     setCurrentTheme((prevTheme) => (prevTheme + 1) % themes.length);
-                } catch (error) {
+                } catch {
                     setResult('Error');
                 }
                 break;
